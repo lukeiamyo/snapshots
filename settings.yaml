@@ -1,5 +1,6 @@
+# Config file for Google drive authentication
+# and folder access. 
 
-# default: client_secrets.json
 client_config_backend: file
 
 save_credentials: True
@@ -10,4 +11,3 @@ get_refresh_token: True
 
 oauth_scope:
     - https://www.googleapis.com/auth/drive
-
