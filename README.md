@@ -3,7 +3,7 @@
 snapshots includes a single deployed AWS Lambda function that grabs a random photo from specified Google Drive folder and sends it to a specified Facebook chat at a scheduled time (E.g. my function runs every day at 9:30 AM).
 
 ## Pre-requisites
-Project requires a Google API project, Facebook account and an AWS account.
+Requires a Google API project, Facebook account and an AWS account.
 
 ## Installation
 Project requires `python 3.8`
