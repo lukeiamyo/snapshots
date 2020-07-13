@@ -129,6 +129,7 @@ dmypy.json
 .pyre/
 
 # secrets
+fb_session.json
 client_secrets.json
 credentials.json
 secrets.txt

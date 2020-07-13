@@ -3,6 +3,7 @@ try:
 except ImportError:
     pass
 
+import json
 import os
 from fbchat import Client
 from fbchat.models import Message, ThreadType
@@ -11,6 +12,7 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 from pydrive.files import GoogleDriveFile
 from random import randrange
+from typing import Dict
 
 PARENT_PATH = Path(__file__).parent.absolute()
 
@@ -21,7 +23,10 @@ FB_GROUP_ID = os.environ.get("FB_GROUP_ID")
 
 
 def lambda_handler(event, context):
-    post_to_group(event.get("is_local", True))
+    if event.get("is_local") == "False":
+        post_to_group(False)
+    else:
+        post_to_group(True)
     return {"message": event.get("message", "Hi. No message provided.")}
 
 
@@ -36,10 +41,7 @@ def post_to_group(is_local: bool) -> None:
                     `False` if invoked as a lambda function. 
     """
     img_file = get_image()
-
-    client = Client(FB_USERNAME, FB_PASSWORD)
-    if not client.isLoggedIn():
-        client.login(FB_USERNAME, FB_PASSWORD)
+    client = get_client()
 
     img_file_name = img_file.get("title")
     img_path = f"/tmp/{img_file_name}" if not is_local else f"{PARENT_PATH}/{img_file_name}"
@@ -51,7 +53,9 @@ def post_to_group(is_local: bool) -> None:
         thread_id=FB_GROUP_ID,
         thread_type=ThreadType.GROUP,
     )
-    clean_up(img_path, client)
+
+    save_fb_session(client)
+    os.remove(img_path)
 
 
 def get_image() -> GoogleDriveFile:
@@ -80,9 +84,27 @@ def get_image() -> GoogleDriveFile:
     return img_file
 
 
-def clean_up(img_path: str, client: Client) -> None:
-    """ Removes local created image and logs out of facebook. """
-    os.remove(img_path)
-    client.logout()
+def get_client() -> Client: 
+    """ Gets Facebook client. 
 
-lambda_handler({}, None)
+        Session cookies are stored in `fb_session.json`. Logs in 
+        without session cookies if the file is empty otherwise logs 
+        in with session cookies. 
+    """
+    session_cookies: Dict[str, str] = {}
+    try:
+        with open('fb_session.json', 'r') as f:
+            session_cookies = json.load(f)
+    except:
+        pass
+
+    return Client(FB_USERNAME, FB_PASSWORD, session_cookies=session_cookies)
+
+def save_fb_session(client: Client) -> None: 
+    """ Saves facebook session cookies. """
+    with open('fb_session.json', 'w') as f:
+        json.dump(client.getSession(), f)
+
+
+if __name__ == "__main__":
+    lambda_handler({}, None)
