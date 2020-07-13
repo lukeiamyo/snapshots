@@ -1,5 +1,3 @@
-org: snapshot4281
-app: snapshots-app
 service: scheduled-snapshot
 
 provider:
@@ -17,6 +15,7 @@ functions:
                 rate: cron(30 09 ? * * *) # Every day at 9:30 AM
                 input: 
                     message: "Photo sent."
+                    is_local: False
 
         environment: 
             FB_USERNAME: ${env:FB_USERNAME}

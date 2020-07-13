@@ -6,10 +6,13 @@ except ImportError:
 import os
 from fbchat import Client
 from fbchat.models import Message, ThreadType
+from pathlib import Path
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 from pydrive.files import GoogleDriveFile
 from random import randrange
+
+PARENT_PATH = Path(__file__).parent.absolute()
 
 FOLDER_ID = os.environ.get("GOOGLE_DRIVE_FOLDER")
 FB_USERNAME = os.environ.get("FB_USERNAME")
@@ -18,15 +21,19 @@ FB_GROUP_ID = os.environ.get("FB_GROUP_ID")
 
 
 def lambda_handler(event, context):
-    post_to_group()
+    post_to_group(event.get("is_local", True))
     return {"message": event.get("message", "Hi. No message provided.")}
 
 
-def post_to_group() -> None:
+def post_to_group(is_local: bool) -> None:
     """ Sends image to facebook group chat.
 
         Location is demarcated by `thread_id`.
         Scheduled to run every two days at 12:30 PM.
+
+        Args: 
+            is_local: `True` if invoked locally,
+                    `False` if invoked as a lambda function. 
     """
     img_file = get_image()
 
@@ -35,7 +42,7 @@ def post_to_group() -> None:
         client.login(FB_USERNAME, FB_PASSWORD)
 
     img_file_name = img_file.get("title")
-    img_path = f"/tmp/{img_file_name}"
+    img_path = f"/tmp/{img_file_name}" if not is_local else f"{PARENT_PATH}/{img_file_name}"
     img_file.GetContentFile(img_path)
     img_message = Message(text="Sent from Lambda.")
     client.sendLocalImage(
@@ -77,3 +84,5 @@ def clean_up(img_path: str, client: Client) -> None:
     """ Removes local created image and logs out of facebook. """
     os.remove(img_path)
     client.logout()
+
+lambda_handler({}, None)
