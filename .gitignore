@@ -133,3 +133,8 @@ client_secrets.json
 credentials.json
 secrets.txt
 rootkey.csv
+
+# extra
+.serverless
+node_modules
+.requirements.zip

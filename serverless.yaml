@@ -1,0 +1,34 @@
+org: snapshot4281
+app: snapshots-app
+service: scheduled-snapshot
+
+provider:
+    name: aws
+    runtime: python3.8
+    region: us-west-1
+
+functions:
+    snapshot:
+        handler: snapshot.lambda_handler
+        timeout: 15
+        description: Get random photo from GDrive and send to FB chat.
+        events:
+            - schedule: 
+                rate: cron(30 09 ? * * *) # Every day at 9:30 AM
+                input: 
+                    message: "Photo sent."
+
+        environment: 
+            FB_USERNAME: ${env:FB_USERNAME}
+            FB_PASSWORD: ${env:FB_PASSWORD}
+            FB_GROUP_ID: ${env:FB_GROUP_ID}
+            GOOGLE_DRIVE_FOLDER: ${env:GOOGLE_DRIVE_FOLDER}
+
+custom:
+    pythonRequirements:
+        dockerizePip: true
+        usePipenv: true
+        slim: false
+       
+plugins:
+    - serverless-python-requirements
